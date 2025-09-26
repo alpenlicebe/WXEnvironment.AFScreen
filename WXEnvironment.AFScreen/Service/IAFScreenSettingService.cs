@@ -32,7 +32,7 @@ namespace WXEnvironment.AFScreen.Service
         /// <param name="model"></param>
         /// <param name="sessionMongo"></param>
         /// <returns></returns>
-        public Task<Result<bool>> UpdateInfo(string infoId, Data.AFScreenSettingModel model, IClientSessionHandle? sessionMongo = null);
+        public Task<Result<bool>> DeleteAndCreate(string infoId, Data.AFScreenSettingModel model, IClientSessionHandle? sessionMongo = null);
 
         /**/
 
@@ -50,6 +50,20 @@ namespace WXEnvironment.AFScreen.Service
         /// <returns></returns>
         public Task<Result<List<Data.AFScreenSettingModel>>> List(Data.QueryAFScreenSetting query);
 
-        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="sessionMongo"></param>
+        /// <returns></returns>
+        public Task<Result<bool>> Delete(string id, IClientSessionHandle? sessionMongo = null);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ids"></param>
+        /// <param name="sessionMongo"></param>
+        /// <returns></returns>
+        public Task<Result<bool>> Delete(List<string> ids, IClientSessionHandle? sessionMongo = null);
     }
 }

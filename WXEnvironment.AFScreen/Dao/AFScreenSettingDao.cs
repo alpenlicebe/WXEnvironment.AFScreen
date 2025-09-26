@@ -18,7 +18,7 @@ namespace WXEnvironment.AFScreen.Dao
     /// <summary>
     /// 设备
     /// </summary>
-    public class DeviceDao : BaseDao<Data.AFScreenSettingModel>, IAFScreenSettingService
+    public class AFScreenSettingDao : BaseDao<Data.AFScreenSettingModel>, IAFScreenSettingService
     {
         private readonly IValidator<Data.AFScreenSettingModel> _validator;
 
@@ -34,7 +34,7 @@ namespace WXEnvironment.AFScreen.Dao
         /// <param name="accountService"></param>
         /// <param name="platformFieldService"></param>
         /// <param name="user"></param>
-        public DeviceDao(IMongoClient mongoClient, IValidator<Data.AFScreenSettingModel> validator, IAccountService accountService, IPlatformFieldService platformFieldService, ICurrentUserInfoService user)
+        public AFScreenSettingDao(IMongoClient mongoClient, IValidator<Data.AFScreenSettingModel> validator, IAccountService accountService, IPlatformFieldService platformFieldService, ICurrentUserInfoService user)
             : base(mongoClient, "wx_af", "setting")
         {
             _validator = validator;
@@ -50,6 +50,19 @@ namespace WXEnvironment.AFScreen.Dao
         protected override void Initialize()
         {
 
+        }
+
+        /// <summary>
+        /// 单条
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<Result<Data.AFScreenSettingModel>> Get(string id)
+        {
+            if (string.IsNullOrEmpty(id) || id.Length != 24)
+                return Result<Data.AFScreenSettingModel>.NotOk("参数为空");
+            var filter = Builders<Data.AFScreenSettingModel>.Filter.Eq(c => c.Id, id);
+            return await this.MongoGetOne(filter);
         }
 
         /// <summary>
@@ -181,15 +194,59 @@ namespace WXEnvironment.AFScreen.Dao
         }
         #endregion
 
+        #region 更新多条
+        private async Task<Result<bool>> UpdateManyAlpenliebe(FilterDefinition<Data.AFScreenSettingModel> filter, UpdateDefinition<Data.AFScreenSettingModel> update, UpdateOptions? options = null, IClientSessionHandle? sessionMongo = null)
+        {
+            if (sessionMongo == null)
+            {
+                using (var session = this.MongoClient.StartSession())
+                {
+                    try
+                    {
+                        session.StartTransaction();
+                        var result = await this.MongoUpdateMany(session, filter, update, options);
+                        if (!result.ok)
+                            throw new Exception("updateex操作失败：" + result.message);
+                        session.CommitTransaction();
+                        //此处可能存在UpdateOptions.IsUpsert=true，需判断
+                        if (result.ext == 0)
+                            return Result<bool>.NotOk("未更新任何数据");
+                        return Result<bool>.Ok(true, 1);
+                    }
+                    catch (Exception ex)
+                    {
+                        session.AbortTransaction();
+                        return Result<bool>.NotOk(ex.Message);
+                    }
+                }
+            }
+            else
+            {
+                try
+                {
+                    var result = await this.MongoUpdateMany(sessionMongo, filter, update, options);
+                    if (!result.ok)
+                        throw new Exception("updateex操作失败：" + result.message);
+                    if (result.ext == 0)
+                        return Result<bool>.NotOk("未更新任何数据");
+                    return Result<bool>.Ok(true, 1);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("操作失败：" + ex.Message);
+                }
+            }
+        }
+        #endregion
 
         /// <summary>
-        /// 更新
+        /// 删除后新增
         /// </summary>
         /// <param name="infoId"></param>
         /// <param name="model"></param>
         /// <param name="sessionMongo">注意：如果传递了session，请务必自行进行session的CommitTransaction</param>
         /// <returns></returns>
-        public async Task<Result<bool>> UpdateInfo(string infoId, Data.AFScreenSettingModel model, IClientSessionHandle? sessionMongo = null)
+        public async Task<Result<bool>> DeleteAndCreate(string infoId, Data.AFScreenSettingModel model, IClientSessionHandle? sessionMongo = null)
         {
             if (string.IsNullOrEmpty(infoId))
                 return Result<bool>.NotOk("参数为空");
@@ -197,26 +254,94 @@ namespace WXEnvironment.AFScreen.Dao
             if (!data.ok || data.value == null)
                 return Result<bool>.NotOk("数据不存在");
 
+            if (sessionMongo == null)
+            {
+                using (var session = this.MongoClient.StartSession())
+                {
+                    try
+                    {
+                        session.StartTransaction();
+
+                        var tmpDelete = await this.MongoDeleteOne(session, data.value.Id);
+                        if (!tmpDelete.ok)
+                            throw new Exception("数据同步错误");
+
+                        var result = await this.MongoInsertOne(session, model);
+                        if (!result.ok)
+                            throw new Exception(result.message);
+                        session.CommitTransaction();
+                        return Result<bool>.Ok(true, model.Id);
+                    }
+                    catch (Exception ex)
+                    {
+                        session.AbortTransaction();
+                        return Result<bool>.NotOk(ex.Message);
+                    }
+                }
+            }
+            else
+            {
+                try
+                {
+                    var tmpDelete = await this.MongoDeleteOne(sessionMongo, data.value.Id);
+                    if (!tmpDelete.ok)
+                        throw new Exception("数据同步错误");
+                    var result = await this.MongoInsertOne(sessionMongo, model);
+                    if (!result.ok)
+                        throw new Exception(result.message);
+                    return Result<bool>.Ok(true, model.Id);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("操作失败：" + ex.Message);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 删除
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="sessionMongo">注意：如果传递了session，请务必自行进行session的CommitTransaction</param>
+        /// <returns></returns>
+        public async Task<Result<bool>> Delete(string id, IClientSessionHandle? sessionMongo = null)
+        {
+            if (string.IsNullOrEmpty(id) || id.Length != 24)
+                return Result<bool>.NotOk("参数为空");
+            var data = await this.Get(id);
+            if (!data.ok || data.value == null)
+                return Result<bool>.NotOk("数据不存在");
             var builder = Builders<Data.AFScreenSettingModel>.Filter;
-            var filter = builder.And(builder.Eq(c => c.DocVersion, data.value.DocVersion), builder.Eq(c => c.InfoId, infoId));
+            var filter = builder.And(
+                builder.Eq(c => c.FlagDelete, false),
+                builder.Eq(c => c.DocVersion, data.value.DocVersion),
+                builder.Eq(c => c.Id, id));
             var update = Builders<Data.AFScreenSettingModel>.Update
-                .Set(c => c.ModifyAccount, _user.AccountId)
-                .Set(c => c.ModifyAccountName, _user.AccountName)
-                .Set(c => c.ModifyTime, DateTime.Now);
-            update = update
-                .SetIfNotNull(c => c.BgType, model.BgType)
-                .SetIfNotNull(c => c.BgColor, model.BgColor)
-                .SetIfNotNull(c => c.BgImage, model.BgImage)
-
-                .SetIfNotNull(c => c.ActiveElementId, model.ActiveElementId)
-
-                .Set(c => c.ExtraFields, model.ExtraFields)
-
-                .SetIfNotNull(c => c.Sort, model.Sort)
-                .SetIfNotNull(c => c.Note, model.Note)
-                .SetIfNotNull(c => c.Extend, model.Extend);
-
+                .Set(c => c.FlagDelete, true)
+                .Set(c => c.DeleteAccount, _user.AccountId)
+                .Set(c => c.DeleteAccountName, _user.AccountName)
+                .Set(c => c.DeleteTime, DateTime.Now);
             return await this.UpdateOneAlpenliebe(filter, update, new UpdateOptions() { IsUpsert = false }, sessionMongo);
+        }
+
+        /// <summary>
+        /// 删除
+        /// </summary>
+        /// <param name="ids"></param>
+        /// <param name="sessionMongo">注意：如果传递了session，请务必自行进行session的CommitTransaction</param>
+        /// <returns></returns>
+        public async Task<Result<bool>> Delete(List<string> ids, IClientSessionHandle? sessionMongo = null)
+        {
+            if (ids == null || ids.Count == 0)
+                return Result<bool>.NotOk("参数为空");
+            var builder = Builders<Data.AFScreenSettingModel>.Filter;
+            var filter = builder.And(builder.Eq(c => c.FlagDelete, false), builder.In(c => c.Id, ids));
+            var update = Builders<Data.AFScreenSettingModel>.Update
+                .Set(c => c.FlagDelete, true)
+                .Set(c => c.DeleteAccount, _user.AccountId)
+                .Set(c => c.DeleteAccountName, _user.AccountName)
+                .Set(c => c.DeleteTime, DateTime.Now);
+            return await this.UpdateManyAlpenliebe(filter, update, new UpdateOptions() { IsUpsert = false }, sessionMongo);
         }
 
         /// <summary>
