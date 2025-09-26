@@ -97,6 +97,13 @@ namespace WXEnvironment.AFScreen.Data
         /// <param name="filters"></param>
         protected override void FillFilters(FilterDefinitionBuilder<AFScreenSettingModel> Filter, List<FilterDefinition<AFScreenSettingModel>> filters)
         {
+            filters.Add(Filter.EqIfNotNull(c => c.FlagDelete, false));
+
+            filters.Add(Filter.EqIfNotEmpty(c => c.Id, this.Id));
+            filters.Add(Filter.InIfNotNull(c => c.Id, this.Ids));
+            filters.Add(Filter.EqIfNotEmpty(c => c.DocVersion, this.DocVersion));
+            filters.Add(Filter.InIfNotNull(c => c.DocVersion, this.DocVersions));
+
             filters.Add(Filter.EqIfNotEmpty(c => c.InfoId, this.InfoId));
             filters.Add(Filter.EqIfNotEmpty(c => c.BelongUserId, this.BelongUserId));
             filters.Add(Filter.EqIfNotEmpty(c => c.BgType, this.BgType));
