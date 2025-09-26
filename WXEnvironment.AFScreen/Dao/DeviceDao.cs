@@ -209,7 +209,9 @@ namespace WXEnvironment.AFScreen.Dao
                 .SetIfNotNull(c => c.BgImage, model.BgImage)
 
                 .SetIfNotNull(c => c.ActiveElementId, model.ActiveElementId)
-                
+
+                .Set(c => c.ExtraFields, model.ExtraFields)
+
                 .SetIfNotNull(c => c.Sort, model.Sort)
                 .SetIfNotNull(c => c.Note, model.Note)
                 .SetIfNotNull(c => c.Extend, model.Extend);
