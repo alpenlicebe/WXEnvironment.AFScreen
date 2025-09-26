@@ -254,6 +254,27 @@ namespace WXEnvironment.AFScreen.Dao
             if (!data.ok || data.value == null)
                 return Result<bool>.NotOk("数据不存在");
 
+            model.Id = ObjectId.GenerateNewId().ToString();
+            model.CreateAccount = _user.AccountId;
+            model.CreateAccountName = _user.AccountName;
+            model.ModifyAccount = "";
+            model.ModifyAccountName = "";
+            model.ModifyTime = null;
+            model.FlagDelete = false;
+            model.DeleteAccount = "";
+            model.DeleteAccountName = "";
+            model.DeleteTime = null;
+
+            var v = _validator.Validate(model);
+            if (!v.IsValid)
+                return Result<bool>.NotOk(v.ToString(";"));
+
+            var builder = Builders<Data.AFScreenSettingModel>.Filter;
+            var filter = builder.And(
+                builder.Eq(c => c.FlagDelete, false),
+                builder.Eq(c => c.DocVersion, data.value.DocVersion),
+                builder.Eq(c => c.Id, data.value.Id));
+
             if (sessionMongo == null)
             {
                 using (var session = this.MongoClient.StartSession())
@@ -262,7 +283,7 @@ namespace WXEnvironment.AFScreen.Dao
                     {
                         session.StartTransaction();
 
-                        var tmpDelete = await this.MongoDeleteOne(session, data.value.Id);
+                        var tmpDelete = await this.MongoDeleteOne(session, filter);
                         if (!tmpDelete.ok)
                             throw new Exception("数据同步错误");
 
@@ -283,7 +304,7 @@ namespace WXEnvironment.AFScreen.Dao
             {
                 try
                 {
-                    var tmpDelete = await this.MongoDeleteOne(sessionMongo, data.value.Id);
+                    var tmpDelete = await this.MongoDeleteOne(sessionMongo, filter);
                     if (!tmpDelete.ok)
                         throw new Exception("数据同步错误");
                     var result = await this.MongoInsertOne(sessionMongo, model);
