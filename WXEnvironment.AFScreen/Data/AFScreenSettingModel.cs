@@ -27,6 +27,22 @@ namespace WXEnvironment.AFScreen.Data
         public string? InfoId { get; set; }
 
         /// <summary>
+        /// Info-名称
+        /// </summary>
+        [BsonElement("info_name")]
+        public string? InfoName { get; set; }
+        /// <summary>
+        /// Info-宽
+        /// </summary>
+        [BsonElement("info_width")]
+        public int InfoWidth { get; set; }
+        /// <summary>
+        /// Info-高
+        /// </summary>
+        [BsonElement("info_height")]
+        public int InfoHeight { get; set; }
+
+        /// <summary>
         /// 所属用户
         /// </summary>
         [BsonElement("belong_user_id")]
