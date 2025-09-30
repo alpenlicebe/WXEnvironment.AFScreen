@@ -11,6 +11,13 @@ namespace WXEnvironment.AFScreen.Service
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public Task<Result<Data.AFScreenSettingModel>> Get(string id);
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="infoId"></param>
         /// <returns></returns>
         public Task<Result<Data.AFScreenSettingModel>> GetByInfoId(string infoId);
