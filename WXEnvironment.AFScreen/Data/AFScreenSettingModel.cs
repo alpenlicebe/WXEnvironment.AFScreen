@@ -70,6 +70,12 @@ namespace WXEnvironment.AFScreen.Data
         public string? BgImage { get; set; }
 
         /// <summary>
+        /// 背景粒子效果
+        /// </summary>
+        [BsonElement("bg_particles")]
+        public string? BgParticles { get; set; }
+
+        /// <summary>
         /// 激活控件
         /// </summary>
         [BsonElement("active_element_id")]
