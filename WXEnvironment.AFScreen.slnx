@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="../WXEnvironment.Auth/WXEnvironment.Auth/WXEnvironment.Auth.csproj" />
+  <Project Path="../WXEnvironment.Common/WXEnvironment.Common/WXEnvironment.Common.csproj" />
+  <Project Path="../WXEnvironment.MongoDB/WXEnvironment.MongoDB/WXEnvironment.MongoDB.csproj" />
+  <Project Path="WXEnvironment.AFScreen/WXEnvironment.AFScreen.csproj" />
+</Solution>

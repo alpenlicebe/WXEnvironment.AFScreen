@@ -1,16 +1,13 @@
 ﻿using FluentValidation;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using WXEnvironment.AFScreen.Service;
 using WXEnvironment.Auth.Service;
 using WXEnvironment.Common;
-using WXEnvironment.AFScreen.Data;
-using WXEnvironment.AFScreen.Service;
 using WXEnvironment.MongoDB;
 
 #pragma warning disable CS8602 // Possible null reference argument.
-#pragma warning disable CS8603 // Possible null reference argument.
 #pragma warning disable CS8604 // Possible null reference argument.
-#pragma warning disable CS8619 // Possible null reference argument.
 
 
 namespace WXEnvironment.AFScreen.Dao
@@ -18,31 +15,21 @@ namespace WXEnvironment.AFScreen.Dao
     /// <summary>
     /// 设备
     /// </summary>
-    public class AFScreenSettingDao : BaseDao<Data.AFScreenSettingModel>, IAFScreenSettingService
+    /// <remarks>
+    /// 
+    /// </remarks>
+    /// <param name="mongoClient"></param>
+    /// <param name="validator"></param>
+    /// <param name="accountService"></param>
+    /// <param name="platformFieldService"></param>
+    /// <param name="user"></param>
+    public class AFScreenSettingDao(IMongoClient mongoClient, IValidator<Data.AFScreenSettingModel> validator, IAccountService accountService, IPlatformFieldService platformFieldService, ICurrentUserInfoService user) : BaseDao<Data.AFScreenSettingModel>(mongoClient, "wx_af", "setting"), IAFScreenSettingService
     {
-        private readonly IValidator<Data.AFScreenSettingModel> _validator;
+        private readonly IValidator<Data.AFScreenSettingModel> _validator = validator;
 
-        private readonly IAccountService _accountService;
-        private readonly IPlatformFieldService _platformFieldService;
-        private readonly ICurrentUserInfoService _user;
-        
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="mongoClient"></param>
-        /// <param name="validator"></param>
-        /// <param name="accountService"></param>
-        /// <param name="platformFieldService"></param>
-        /// <param name="user"></param>
-        public AFScreenSettingDao(IMongoClient mongoClient, IValidator<Data.AFScreenSettingModel> validator, IAccountService accountService, IPlatformFieldService platformFieldService, ICurrentUserInfoService user)
-            : base(mongoClient, "wx_af", "setting")
-        {
-            _validator = validator;
-
-            _accountService = accountService;
-            _platformFieldService = platformFieldService;
-            _user = user;
-        }
+        private readonly IAccountService _accountService = accountService;
+        private readonly IPlatformFieldService _platformFieldService = platformFieldService;
+        private readonly ICurrentUserInfoService _user = user;
 
         /// <summary>
         /// 
@@ -116,22 +103,20 @@ namespace WXEnvironment.AFScreen.Dao
 
             if (sessionMongo == null)
             {
-                using (var session = this.MongoClient.StartSession())
+                using var session = this.MongoClient.StartSession();
+                try
                 {
-                    try
-                    {
-                        session.StartTransaction();
-                        var result = await this.MongoInsertOne(session, model);
-                        if (!result.ok)
-                            throw new Exception(result.message);
-                        session.CommitTransaction();
-                        return Result<bool>.Ok(true, model.Id);
-                    }
-                    catch (Exception ex)
-                    {
-                        session.AbortTransaction();
-                        return Result<bool>.NotOk(ex.Message);
-                    }
+                    session.StartTransaction();
+                    var result = await this.MongoInsertOne(session, model);
+                    if (!result.ok)
+                        throw new Exception(result.message);
+                    session.CommitTransaction();
+                    return Result<bool>.Ok(true, model.Id);
+                }
+                catch (Exception ex)
+                {
+                    session.AbortTransaction();
+                    return Result<bool>.NotOk(ex.Message);
                 }
             }
             else
@@ -155,24 +140,22 @@ namespace WXEnvironment.AFScreen.Dao
         {
             if (sessionMongo == null)
             {
-                using (var session = this.MongoClient.StartSession())
+                using var session = this.MongoClient.StartSession();
+                try
                 {
-                    try
-                    {
-                        session.StartTransaction();
-                        var result = await this.MongoUpdateOne(session, filter, update, options);
-                        if (!result.ok)
-                            throw new Exception("updateex操作失败：" + result.message);
-                        session.CommitTransaction();
-                        if (result.value == null)
-                            return Result<bool>.NotOk("未更新任何数据");
-                        return Result<bool>.Ok(true, 1);
-                    }
-                    catch (Exception ex)
-                    {
-                        session.AbortTransaction();
-                        return Result<bool>.NotOk(ex.Message);
-                    }
+                    session.StartTransaction();
+                    var result = await this.MongoUpdateOne(session, filter, update, options);
+                    if (!result.ok)
+                        throw new Exception("updateex操作失败：" + result.message);
+                    session.CommitTransaction();
+                    if (result.value == null)
+                        return Result<bool>.NotOk("未更新任何数据");
+                    return Result<bool>.Ok(true, 1);
+                }
+                catch (Exception ex)
+                {
+                    session.AbortTransaction();
+                    return Result<bool>.NotOk(ex.Message);
                 }
             }
             else
@@ -199,25 +182,23 @@ namespace WXEnvironment.AFScreen.Dao
         {
             if (sessionMongo == null)
             {
-                using (var session = this.MongoClient.StartSession())
+                using var session = this.MongoClient.StartSession();
+                try
                 {
-                    try
-                    {
-                        session.StartTransaction();
-                        var result = await this.MongoUpdateMany(session, filter, update, options);
-                        if (!result.ok)
-                            throw new Exception("updateex操作失败：" + result.message);
-                        session.CommitTransaction();
-                        //此处可能存在UpdateOptions.IsUpsert=true，需判断
-                        if (result.ext == 0)
-                            return Result<bool>.NotOk("未更新任何数据");
-                        return Result<bool>.Ok(true, 1);
-                    }
-                    catch (Exception ex)
-                    {
-                        session.AbortTransaction();
-                        return Result<bool>.NotOk(ex.Message);
-                    }
+                    session.StartTransaction();
+                    var result = await this.MongoUpdateMany(session, filter, update, options);
+                    if (!result.ok)
+                        throw new Exception("updateex操作失败：" + result.message);
+                    session.CommitTransaction();
+                    //此处可能存在UpdateOptions.IsUpsert=true，需判断
+                    if (result.ext == 0)
+                        return Result<bool>.NotOk("未更新任何数据");
+                    return Result<bool>.Ok(true, 1);
+                }
+                catch (Exception ex)
+                {
+                    session.AbortTransaction();
+                    return Result<bool>.NotOk(ex.Message);
                 }
             }
             else
@@ -277,27 +258,25 @@ namespace WXEnvironment.AFScreen.Dao
 
             if (sessionMongo == null)
             {
-                using (var session = this.MongoClient.StartSession())
+                using var session = this.MongoClient.StartSession();
+                try
                 {
-                    try
-                    {
-                        session.StartTransaction();
+                    session.StartTransaction();
 
-                        var tmpDelete = await this.MongoDeleteOne(session, filter);
-                        if (!tmpDelete.ok)
-                            throw new Exception("数据同步错误");
+                    var tmpDelete = await this.MongoDeleteOne(session, filter);
+                    if (!tmpDelete.ok)
+                        throw new Exception("数据同步错误");
 
-                        var result = await this.MongoInsertOne(session, model);
-                        if (!result.ok)
-                            throw new Exception(result.message);
-                        session.CommitTransaction();
-                        return Result<bool>.Ok(true, model.Id);
-                    }
-                    catch (Exception ex)
-                    {
-                        session.AbortTransaction();
-                        return Result<bool>.NotOk(ex.Message);
-                    }
+                    var result = await this.MongoInsertOne(session, model);
+                    if (!result.ok)
+                        throw new Exception(result.message);
+                    session.CommitTransaction();
+                    return Result<bool>.Ok(true, model.Id);
+                }
+                catch (Exception ex)
+                {
+                    session.AbortTransaction();
+                    return Result<bool>.NotOk(ex.Message);
                 }
             }
             else

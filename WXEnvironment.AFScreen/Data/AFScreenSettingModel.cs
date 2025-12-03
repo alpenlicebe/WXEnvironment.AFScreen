@@ -4,10 +4,8 @@ using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using WXEnvironment.MongoDB;
 
-#pragma warning disable CS8602 // Possible null reference argument.
 #pragma warning disable CS8603 // Possible null reference argument.
 #pragma warning disable CS8604 // Possible null reference argument.
-#pragma warning disable CS8610 // Possible null reference argument.
 
 namespace WXEnvironment.AFScreen.Data
 {
@@ -88,7 +86,7 @@ namespace WXEnvironment.AFScreen.Data
         /// </summary>
         [BsonExtraElements]
         [JsonExtensionData]
-        public Dictionary<string, object> ExtraFields { get; set; } = new();
+        public Dictionary<string, object> ExtraFields { get; set; } = [];
 
     }
 
