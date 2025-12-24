@@ -1,15 +1,17 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <PackageVersion>8.0.9489.47248</PackageVersion>
+    <Authors>dazhong.yang</Authors>
+    <Description>dazhong.yang</Description>
+    <Copyright>dazhong.yang</Copyright>
+    <PackageOutputPath>..</PackageOutputPath>
   </PropertyGroup>
-
   <ItemGroup>
-    <ProjectReference Include="..\..\WXEnvironment.Auth\WXEnvironment.Auth\WXEnvironment.Auth.csproj" />
-    <ProjectReference Include="..\..\WXEnvironment.Common\WXEnvironment.Common\WXEnvironment.Common.csproj" />
-    <ProjectReference Include="..\..\WXEnvironment.MongoDB\WXEnvironment.MongoDB\WXEnvironment.MongoDB.csproj" />
+    <PackageReference Include="WXEnvironment.Auth" Version="8.0.9489.46805" />
+    <PackageReference Include="WXEnvironment.Common" Version="8.0.9489.42224" />
+    <PackageReference Include="WXEnvironment.MongoDB" Version="8.0.9489.46375" />
   </ItemGroup>
-
 </Project>
