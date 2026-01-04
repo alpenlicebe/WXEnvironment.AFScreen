@@ -99,7 +99,7 @@ namespace WXEnvironment.AFScreen.Dao
             var acc = await _accountService.Get(model.BelongUserId);
             if (!acc.ok || acc.value == null)
                 return Result<bool>.NotOk("“用户”不存在，请修改后重试");
-            model.BelongUserName = acc.value.Name;
+            //model.BelongUserName = acc.value.Name;
 
             if (sessionMongo == null)
             {

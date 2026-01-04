@@ -3,7 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <PackageVersion>8.0.9489.47248</PackageVersion>
+    <PackageVersion>8.0.9500.48832</PackageVersion>
     <Authors>dazhong.yang</Authors>
     <Description>dazhong.yang</Description>
     <Copyright>dazhong.yang</Copyright>

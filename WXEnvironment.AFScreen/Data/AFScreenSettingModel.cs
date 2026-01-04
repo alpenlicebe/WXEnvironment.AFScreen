@@ -45,11 +45,11 @@ namespace WXEnvironment.AFScreen.Data
         /// </summary>
         [BsonElement("belong_user_id")]
         public string? BelongUserId { get; set; }
-        /// <summary>
-        /// 所属用户
-        /// </summary>
-        [BsonElement("belong_user_name")]
-        public string? BelongUserName { get; set; }
+        ///// <summary>
+        ///// 所属用户
+        ///// </summary>
+        //[BsonElement("belong_user_name")]
+        //public string? BelongUserName { get; set; }
 
         /// <summary>
         /// 背景类型  color | image
@@ -128,9 +128,9 @@ namespace WXEnvironment.AFScreen.Data
             filters.Add(Filter.EqIfNotEmpty(c => c.BelongUserId, this.BelongUserId));
             filters.Add(Filter.EqIfNotEmpty(c => c.BgType, this.BgType));
 
-            filters.Add(Filter.OrIfNotNull(
-                Filter.Like(c => c.BelongUserName, KeyWord)
-            ));
+            //filters.Add(Filter.OrIfNotNull(
+            //    Filter.Like(c => c.BelongUserName, KeyWord)
+            //));
         }
     }
 }
