@@ -17,8 +17,8 @@ namespace WXEnvironment.AFScreen.Validator
         {
             RuleFor(x => x.InfoId).NotEmpty().WithMessage("“编号”不能为空");
             RuleFor(x => x.BgType).NotEmpty().WithMessage("“背景类型”不能为空")
-                .Must(bgType => bgType.Equals("color", StringComparison.OrdinalIgnoreCase) || bgType.Equals("image", StringComparison.OrdinalIgnoreCase))
-                .WithMessage("“背景类型”只能是 'color' 或 'image'");
+                .Must(bgType => bgType.Equals("color", StringComparison.OrdinalIgnoreCase) || bgType.Equals("image", StringComparison.OrdinalIgnoreCase) || bgType.Equals("weather", StringComparison.OrdinalIgnoreCase))
+                .WithMessage("“背景类型”只能是 'color' 或 'image' 或 'weather'");
             RuleFor(x => x.BelongUserId).NotEmpty().WithMessage("“所属用户”不能为空").Length(24).WithMessage("“所属用户”格式不正确");
         }
     }
